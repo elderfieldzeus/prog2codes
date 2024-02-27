@@ -180,6 +180,7 @@ void updateFile(TaskList list, const char file[]) {
     }
     remove(file);
     rename("./delete", file);
+    fclose(fDelete);
 }
 
 int findTask(char search[], TaskList *list) {
