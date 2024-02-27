@@ -20,8 +20,10 @@ void inputTask(TaskList *list, const char file[]);
 int optionsScreen(TaskList *list, const char file[]);
 int continueOrNot();
 void displayTasks(TaskList list);
+void finishTask(TaskList *list, const char file[]);
+void finishFromFile(TaskList list);
 void deleteTasks(TaskList *list, const char file[]);
-void deleteFromFile(TaskList list, const char file[]);
+void updateFile(TaskList list, const char file[]);
 int findTask(char search[], TaskList *list);
 int areSameString(const char s1[], const char s2[]);
 void exitScreen();
@@ -71,9 +73,9 @@ int optionsScreen(TaskList *list, const char file[]) {
     switch(choice) {
         case 1: displayTasks(*list); break;
         case 2: inputTask(list, file); break;
-        case 3: break;
+        case 3: finishTask(list, file); break;
         case 4: deleteTasks(list, file); break;
-        default: choice = -1;
+        default: choice = 0;
     }
 
     if(choice != -1) {
@@ -121,6 +123,27 @@ void displayTasks(TaskList list) {
     }
 }
 
+void finishTask(TaskList *list, const char file[]) {
+    char toBeFinished[100];
+    int found = 0;
+    printf("\033[H\033[J");
+    printf("Enter task you have finished: ");
+    scanf(" %[^\n]", toBeFinished);
+
+    for(int i = 0; i < list->count; i++) {
+        if(areSameString(list->tasks[i].task, toBeFinished) == 0) {
+            list->tasks[i].status = 1;
+            found = 1;
+        }
+    }
+
+    if(found == 0) {
+        printf("TASK NOT FOUND! Pls try again\n");
+    }
+
+    updateFile(*list, file);
+}
+
 void deleteTasks(TaskList *list, const char file[]) {
     char toBeDeleted[100];
     int index;
@@ -140,13 +163,13 @@ void deleteTasks(TaskList *list, const char file[]) {
             list->tasks[i] = list->tasks[i + 1];
         }
         list->tasks = (Taskbar*) realloc(list->tasks, sizeof(Taskbar) * list->count);
-        deleteFromFile(*list, file);
+        updateFile(*list, file);
         index = findTask(toBeDeleted, list);
     }
     printf("TASK SUCCESSFULLY DELETED!!");
 }
 
-void deleteFromFile(TaskList list, const char file[]) {
+void updateFile(TaskList list, const char file[]) {
     FILE *fDelete;
     int i = 0;
     if((fDelete = fopen("./delete", "wb+")) == NULL) {
