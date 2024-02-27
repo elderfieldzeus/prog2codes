@@ -21,7 +21,6 @@ int optionsScreen(TaskList *list, const char file[]);
 int continueOrNot();
 void displayTasks(TaskList list);
 void finishTask(TaskList *list, const char file[]);
-void finishFromFile(TaskList list);
 void deleteTasks(TaskList *list, const char file[]);
 void updateFile(TaskList list, const char file[]);
 int findTask(char search[], TaskList *list);
