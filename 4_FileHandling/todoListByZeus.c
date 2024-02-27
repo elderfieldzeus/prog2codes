@@ -6,26 +6,26 @@
 
 typedef struct {
     char task[30];
-    unsigned status : 1;
-}Taskbar;
+    unsigned status : 1; //bit field
+}Tasktype;
 
 typedef struct {
-    Taskbar *tasks;
+    Tasktype *tasks; //array of tasks
     int count;
-    int max;
 }TaskList;
 
 TaskList getTasks(const char file[]);
-void inputTask(TaskList *list, const char file[]);
-int optionsScreen(TaskList *list, const char file[]);
-int continueOrNot();
-void displayTasks(TaskList list);
-void finishTask(TaskList *list, const char file[]);
-void deleteTasks(TaskList *list, const char file[]);
-void updateFile(TaskList list, const char file[]);
-int findTask(char search[], TaskList *list);
-int areSameString(const char s1[], const char s2[]);
-void exitScreen();
+void inputTask(TaskList *list, const char file[]); //gets input
+int optionsScreen(TaskList *list, const char file[]); //displays choices
+int continueOrNot(); //prompts user on if the program should continue
+void displayTasks(TaskList list); //displays the different tasks
+void finishTask(TaskList *list, const char file[]); //change task status to finished
+void deleteTasks(TaskList *list, const char file[]); //delete unwanted tasks
+void clearList(TaskList *list, const char file[]); //resets the data in the list
+void updateFile(TaskList list, const char file[]); //updates file with new info
+int findTask(char search[], TaskList *list); //searches the task and returns index
+int areSameString(const char s1[], const char s2[]); //compares 2 strings (not case sensitive)
+void exitScreen(); //displays exit screen
 
 int main() {
     char file[] = "./tasks.dat";
@@ -48,10 +48,10 @@ TaskList getTasks(const char file[]) {
         }
     }
     
-    list.tasks = (Taskbar*) malloc(sizeof(Taskbar) * MAX);
+    list.tasks = (Tasktype*) malloc(sizeof(Tasktype) * MAX);
     list.count = -1;
-    while(fread(&list.tasks[++list.count], sizeof(Taskbar), 1, fptr) != 0);
-    list.tasks = (Taskbar*) realloc(list.tasks, sizeof(Taskbar) * list.count);
+    while(fread(&list.tasks[++list.count], sizeof(Tasktype), 1, fptr) != 0);
+    list.tasks = (Tasktype*) realloc(list.tasks, sizeof(Tasktype) * list.count);
     fclose(fptr);
     return list;
 }
@@ -65,6 +65,7 @@ int optionsScreen(TaskList *list, const char file[]) {
     printf("[2] Add Task\n");
     printf("[3] Finish Task/s\n");
     printf("[4] Delete Task/s\n");
+    printf("[5] Clear All Tasks\n");
     printf("[?] Exit\n");
     printf("Enter choice: ");
     scanf("%d", &choice);
@@ -74,6 +75,7 @@ int optionsScreen(TaskList *list, const char file[]) {
         case 2: inputTask(list, file); break;
         case 3: finishTask(list, file); break;
         case 4: deleteTasks(list, file); break;
+        case 5: clearList(list, file); break;
         default: choice = 0;
     }
 
@@ -97,12 +99,12 @@ void inputTask(TaskList *list, const char file[]) {
         printf("ERROR IN INPUT");
     }
 
-    list->tasks = (Taskbar*) realloc(list->tasks, sizeof(Taskbar) * (++list->count));
+    list->tasks = (Tasktype*) realloc(list->tasks, sizeof(Tasktype) * (++list->count));
     printf("\033[H\033[J");
     printf("Enter task: ");
     scanf(" %[^\n]", list->tasks[list->count - 1].task);
     list->tasks[list->count - 1].status = 0;
-    fwrite(&list->tasks[list->count - 1], sizeof(Taskbar), 1, fptr);
+    fwrite(&list->tasks[list->count - 1], sizeof(Tasktype), 1, fptr);
     fclose(fptr);
 }
 
@@ -138,8 +140,10 @@ void finishTask(TaskList *list, const char file[]) {
 
     if(found == 0) {
         printf("TASK NOT FOUND! Pls try again\n");
+        return;
     }
 
+    printf("TASK STATUS UPDATED\n");
     updateFile(*list, file);
 }
 
@@ -162,11 +166,30 @@ void deleteTasks(TaskList *list, const char file[]) {
         for(int i = index; i < list->count; i++) {
             list->tasks[i] = list->tasks[i + 1];
         }
-        list->tasks = (Taskbar*) realloc(list->tasks, sizeof(Taskbar) * list->count);
-        updateFile(*list, file);
+        list->tasks = (Tasktype*) realloc(list->tasks, sizeof(Tasktype) * list->count);
         index = findTask(toBeDeleted, list);
     }
+
     printf("TASK SUCCESSFULLY DELETED!!\n");
+    updateFile(*list, file);
+}
+
+void clearList(TaskList *list, const char file[]) {
+    FILE *fClear;
+
+    list->count = 0;
+    list->tasks = (Tasktype*) realloc(list->tasks, sizeof(Tasktype) * list->count);
+
+    printf("\033[H\033[J");
+
+    if((fClear = fopen("./clear.dat", "wb+")) == NULL) {
+        printf("ERROR IN CLEAR\n");
+    }
+
+    printf("TO-DO LIST HAS BEEN SUCCESSFULLY CLEARED");
+    remove(file);
+    rename("./clear.dat", file);
+    fclose(fClear);
 }
 
 void updateFile(TaskList list, const char file[]) {
@@ -176,7 +199,7 @@ void updateFile(TaskList list, const char file[]) {
         printf("ERROR IN DELETE");
     }
     for(int i = 0; i < list.count; i++) {
-        fwrite(&list.tasks[i], sizeof(Taskbar), 1, fDelete);
+        fwrite(&list.tasks[i], sizeof(Tasktype), 1, fDelete);
     }
     remove(file);
     rename("./delete", file);
