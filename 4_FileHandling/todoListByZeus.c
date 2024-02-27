@@ -185,7 +185,7 @@ void clearList(TaskList *list, const char file[]) {
         printf("ERROR IN CLEAR\n");
     }
 
-    printf("TO-DO LIST HAS BEEN SUCCESSFULLY CLEARED");
+    printf("TO-DO LIST HAS BEEN SUCCESSFULLY CLEARED\n");
     fclose(fClear);
     remove(file);
     rename("./clear.dat", file);
