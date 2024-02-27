@@ -17,20 +17,23 @@ typedef struct {
 
 TaskList getTasks(const char file[]);
 void inputTask(TaskList *list, const char file[]);
+int optionsScreen(TaskList *list, const char file[]);
+int continueOrNot();
 void displayTasks(TaskList list);
 void deleteTasks(TaskList *list, const char file[]);
 void deleteFromFile(TaskList list, const char file[]);
 int findTask(char search[], TaskList *list);
 int areSameString(const char s1[], const char s2[]);
+void exitScreen();
 
 int main() {
     char file[] = "./tasks.dat";
     TaskList list = getTasks(file);
-    inputTask(&list, file);
-    //printf("%d\n", list.count);
-    displayTasks(list);
-    deleteTasks(&list, file);
-    displayTasks(list);
+    int loop;
+    do {
+        loop = optionsScreen(&list, file);
+    }while(loop);
+    exitScreen();
     free(list.tasks);
     return 0;
 }
@@ -52,6 +55,41 @@ TaskList getTasks(const char file[]) {
     return list;
 }
 
+int optionsScreen(TaskList *list, const char file[]) {
+    int choice;
+    printf("\033[H\033[J");
+    printf("WELCOME TO ZEUS' TO-DO LIST!!!\n");
+    printf("What would you like to do?\n");
+    printf("[1] Display Tasks\n");
+    printf("[2] Add Task\n");
+    printf("[3] Finish Task/s\n");
+    printf("[4] Delete Task/s\n");
+    printf("[?] Exit\n");
+    printf("Enter choice: ");
+    scanf("%d", &choice);
+    
+    switch(choice) {
+        case 1: displayTasks(*list); break;
+        case 2: inputTask(list, file); break;
+        case 3: break;
+        case 4: deleteTasks(list, file); break;
+        default: choice = -1;
+    }
+
+    if(choice != -1) {
+        choice = continueOrNot();
+    }
+
+    return choice;
+}
+
+int continueOrNot() {
+    char cont;
+    printf("\nWould you like to continue? [y/n]: ");
+    scanf(" %c", &cont);
+    return (tolower(cont) == 'y') ? 1 : 0;
+}
+
 void inputTask(TaskList *list, const char file[]) {
     FILE *fptr;
     if((fptr = fopen(file, "ab")) == NULL) {
@@ -59,7 +97,7 @@ void inputTask(TaskList *list, const char file[]) {
     }
 
     list->tasks = (Taskbar*) realloc(list->tasks, sizeof(Taskbar) * (++list->count));
-
+    printf("\033[H\033[J");
     printf("Enter task: ");
     scanf(" %[^\n]", list->tasks[list->count - 1].task);
     list->tasks[list->count - 1].status = 0;
@@ -68,6 +106,7 @@ void inputTask(TaskList *list, const char file[]) {
 }
 
 void displayTasks(TaskList list) {
+    printf("\033[H\033[J");
     printf("%-30s | STATUS\n", "TASKS");
     for(int i = 0; i < 50; i++) 
         printf("-");
@@ -85,7 +124,7 @@ void displayTasks(TaskList list) {
 void deleteTasks(TaskList *list, const char file[]) {
     char toBeDeleted[100];
     int index;
-
+    printf("\033[H\033[J");
     printf("Enter task to delete: ");
     scanf(" %[^\n]", toBeDeleted);
 
@@ -104,6 +143,7 @@ void deleteTasks(TaskList *list, const char file[]) {
         deleteFromFile(*list, file);
         index = findTask(toBeDeleted, list);
     }
+    printf("TASK SUCCESSFULLY DELETED!!");
 }
 
 void deleteFromFile(TaskList list, const char file[]) {
@@ -132,4 +172,10 @@ int areSameString(const char s1[], const char s2[]) {
         for(i = 0; s1[i] != '\0' && tolower(s1[i]) == tolower(s2[i]); i++);
         return (i == strlen(s1)) ? 0 : 1;
     }
+}
+
+void exitScreen() {
+    printf("\033[H\033[J");
+    printf("THANK YOU FOR USING ZEUS' TO-DO LIST\n");
+    printf("Made on 02/27/2024\n");
 }
