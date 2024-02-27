@@ -82,7 +82,6 @@ int optionsScreen(TaskList *list, const char file[]) {
     if(choice != 0) {
         choice = continueOrNot();
     }
-
     return choice;
 }
 
@@ -187,23 +186,23 @@ void clearList(TaskList *list, const char file[]) {
     }
 
     printf("TO-DO LIST HAS BEEN SUCCESSFULLY CLEARED");
+    fclose(fClear);
     remove(file);
     rename("./clear.dat", file);
-    fclose(fClear);
 }
 
 void updateFile(TaskList list, const char file[]) {
     FILE *fDelete;
     int i = 0;
-    if((fDelete = fopen("./delete", "wb+")) == NULL) {
+    if((fDelete = fopen("./delete.dat", "wb+")) == NULL) {
         printf("ERROR IN DELETE");
     }
     for(int i = 0; i < list.count; i++) {
         fwrite(&list.tasks[i], sizeof(Tasktype), 1, fDelete);
     }
-    remove(file);
-    rename("./delete", file);
     fclose(fDelete);
+    remove(file);
+    rename("./delete.dat", file);
 }
 
 int findTask(char search[], TaskList *list) {
