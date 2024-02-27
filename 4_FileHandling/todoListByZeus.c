@@ -78,7 +78,7 @@ int optionsScreen(TaskList *list, const char file[]) {
         default: choice = 0;
     }
 
-    if(choice != -1) {
+    if(choice != 0) {
         choice = continueOrNot();
     }
 
@@ -155,6 +155,7 @@ void deleteTasks(TaskList *list, const char file[]) {
 
     if(index == -1) {
         printf("TASK NOT FOUND! Pls try again\n");
+        return;
     }
 
     while(index != -1){
@@ -166,7 +167,7 @@ void deleteTasks(TaskList *list, const char file[]) {
         updateFile(*list, file);
         index = findTask(toBeDeleted, list);
     }
-    printf("TASK SUCCESSFULLY DELETED!!");
+    printf("TASK SUCCESSFULLY DELETED!!\n");
 }
 
 void updateFile(TaskList list, const char file[]) {
