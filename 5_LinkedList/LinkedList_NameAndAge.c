@@ -19,6 +19,9 @@ int main() {
     initialize(&head);
     populateList(&head);
     displayList(head);
+    populateList(&head);
+    displayList(head);
+    return 0;
 }
 
 void initialize(NameList **head) {
@@ -32,40 +35,38 @@ int askForSize() {
     return size;
 }
 
+void askForInput(NameList **node) {
+    printf("First Name: ");
+    scanf(" %s", (*node)->fName);
+    printf("Middle Initial: ");
+    scanf(" %c", &(*node)->mi);
+    printf("Last Name: ");
+    scanf(" %s", (*node)->lName);
+    printf("Age: ");
+    scanf("%d", &(*node)->age);
+    printf("\n");
+}
+
 void populateList(NameList **head) {
-    NameList *current = NULL;
-    int headNull = 0;
+    NameList *prev = NULL, *curr;
+    for(curr = *head; curr != NULL; prev = curr, curr = curr->next);
 
-    int size = askForSize();
+    int size = askForSize(), prevIsNull = 0;
 
-    if(*head == NULL || size > 0) {
-        current = (NameList *) malloc(sizeof(struct name));
-        printf("First Name: ");
-        scanf(" %s", current->fName);
-        printf("Middle Initial: ");
-        scanf(" %c", &current->mi);
-        printf("Last Name: ");
-        scanf(" %s", current->lName);
-        printf("Age: ");
-        scanf("%d", &current->age);
-        current->next = NULL;
-        *head = current;
-        headNull = 1;
+    if(prev == NULL && size > 0) {
+        prev = (NameList*) malloc(sizeof(struct name));
+        prev->next = NULL;
+        askForInput(&prev);
+        *head = prev;
+        prevIsNull = 1;
     }
 
-    for(int i = (headNull) ? 1 : 0; i < size; i++) {
-        NameList *newNode = (NameList*) malloc(sizeof(struct name));
-        printf("\nFirst Name: ");
-        scanf(" %s", newNode->fName);
-        printf("Middle Initial: ");
-        scanf(" %c", &newNode->mi);
-        printf("Last Name: ");
-        scanf(" %s", newNode->lName);
-        printf("Age: ");
-        scanf("%d", &newNode->age);
-        newNode->next = NULL;
-        current->next = newNode;
-        current = current->next;
+    for(int i = (prevIsNull == 0) ? 0 : 1; i < size; i++) {
+        NameList *temp = (NameList*) malloc(sizeof(struct name));
+        temp->next = NULL;
+        askForInput(&temp);
+        prev->next = temp;
+        prev = prev->next;
     }
 }
 
@@ -77,6 +78,7 @@ void displayList(NameList *head) {
             sprintf(name, "%s, %s %c.", current->lName, current->fName, current->mi);
             printf("%-33s %-d\n", name, current->age);
         }
+        printf("\n");
     }
 }
 
