@@ -13,6 +13,7 @@ void initialize(NameList **head);
 int askForSize();
 void populateList(NameList **head);
 void displayList(NameList *head);
+void freeAll(NameList **head);
 
 int main() {
     NameList *head;
@@ -21,6 +22,7 @@ int main() {
     displayList(head);
     populateList(&head);
     displayList(head);
+    freeAll(&head);
     return 0;
 }
 
@@ -82,3 +84,10 @@ void displayList(NameList *head) {
     }
 }
 
+void freeAll(NameList **head) {
+    while((*head) != NULL) {
+        NameList *temp = *head;
+        *head = (*head)->next;
+        free(temp);
+    }
+}
