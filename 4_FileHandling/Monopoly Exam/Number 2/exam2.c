@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef struct {
 	int id;
@@ -59,42 +60,93 @@ typedef struct {
 //  0 owned by bank, id of the player if lot is owned by a player
 //  initial value of board lot 0, *0, -1, *0, -4, -8, !0, -2, !0, !0, -5, *0, -6, *0, *0, -9, !0, -1, !0, !0, -3, *0, -2, *0, *0, -10, !0, !0, -7, !0, -12, *0, *0, -1, *0, -11, -2, !0, -4, !0
 
-PropAList readTitleDeed(char filename[], char mode[]);
-void displayTitleDeed(TitleDeed td);
+// must implement
+void initGameBoard(GameBoard *board);
+bool addPlayer(GameBoard *board, int player_id);
+void storeToLinkedList(PropLList *head);
+void setBoard(GameBoard *board);
+
+// place the other function prototypes needed
 
 int main(int argc, char *argv[]) {
-	// Get all the title deeds in "titledeed.cis" file and store as a Property Array List using PropAList
-	PropAList titles;
-	titles = readTitleDeed("./titledeed.cis", "rb+");
-	// Display all title deed by repeatedly calling the displayTitleDeed()
-	for(int i = 0; i < titles.count; i++) {
-		displayTitleDeed(titles.lot[i]);
+	GameBoard board;
+
+	initGameBoard(&board);
+
+	for(int i = 0; i < 3; i++) {
+		addPlayer(&board, i);
 	}
-	free(titles.lot);
+
+	for(int i = 0; i < 40; i++) {
+		printf("%d\n", board.boardLot[i]);
+	}
+	
 	return 0;
 }
 
-PropAList readTitleDeed(char filename[], char mode[]) {
-	// To do code logic for readTitles from file.
-	PropAList titles;
-	FILE *fptr;
-	titles.max = 100;
-	titles.lot = malloc(sizeof(TitleDeed) * titles.max);
-	titles.count = 0;
-	if((fptr = fopen(filename, mode)) != NULL) {
-		int counter;
-		do{
-			counter = fread(&titles.lot[titles.count++], sizeof(TitleDeed), 1, fptr); //fread whole struct
-		}while(counter != 0);
-		titles.count--;
+void initGameBoard(GameBoard *board) {
+
+	storeToLinkedList(&board->ownedBank);
+
+	setBoard(board);
+
+	for(int i = 0; i < 7; i++) {
+		board->moneyCount[i] = 30;
 	}
-	titles.lot = realloc(titles.lot, sizeof(TitleDeed) * titles.count);
-	fclose(fptr);
-	return titles;
+
+	board->totalMoney = 20580;
+
+	board->playerCount = 0;
+
+	board->houseCount = 32;
+
+	board->hotelCount = 12;
+
+	board->currChanceTop = 0;
+	board->currCommunityChestTop = 0;
+
 }
 
-void displayTitleDeed(TitleDeed td) {
-	printf("%2d - %30s - %15s\n", td.id, td.name, td.color);
+void setBoard(GameBoard *board) {
+	int def[] = {0, 0, -1, 0, -4, -8, 0, -2, 0, 0, -5, 0, -6, 0, 0, -9, 0, -1, 0, 0, -3, 0, -2, 0, 0, -10, 0, 0, -7, 0, -12, 0, 0, -1, 0, -11, -2, 0, -4, 0};
+
+	memcpy(board->boardLot, def, sizeof(int) * 40);
 }
 
+void storeToLinkedList(PropLList *head) {
+	*head = NULL;
+	PropLList *curr;
+	TitleDeed temp;
 
+	FILE *fptr = fopen("./titledeed.cis", "rb+");
+
+	for(curr = head; fread(&temp, sizeof(TitleDeed), 1, fptr) != 0; curr = &(*curr)->next) {
+		(*curr) = (PropLList)malloc(sizeof(struct prop));
+		(*curr)->next = NULL;
+		(*curr)->lot = temp;
+	} 
+}
+
+bool addPlayer(GameBoard *board, int player_id) {
+	if(board->playerCount < 8) {
+		board->players[board->playerCount].id = player_id;
+
+		board->players[board->playerCount].totalMoney = 1500;
+
+		for(int i = 0; i < 3; i++) {
+			board->players[board->playerCount].moneyCount[i] = 2;
+		}
+
+		board->players[board->playerCount].moneyCount[3] = 6;
+
+		for(int i = 4; i < 7; i++) {
+			board->players[board->playerCount].moneyCount[i] = 5;
+		}
+
+		board->players[board->playerCount++].position = 0;
+		
+		return true;
+	}
+
+	return false;
+}
